@@ -1,120 +1,132 @@
 import turtle
 
-turtle.title("Tic-tac-toe")  # Setting the title
-window = turtle.Screen() # For screen object
-global i
-i = 0
+# Makes Turtles for the 
+class myTurtle:
+    def __init__(self, x, y, pspeed, pcolor, pshape, pwidth) -> None:
+        self.x, self.y = x, y
+        self.pspeed = pspeed
+        self.pcolor = pcolor
+        self.pshape = pshape
+        self.pwidth = pwidth
 
-#Defining a turtle
-def define_turtle(pcolor = "white", pspeed = 1, pwidth = 2, x = 0, y = 0, pshape = "arrow"):
-    pname = turtle.Turtle()
-    pname.up()
-    pname.color(pcolor)
-    pname.speed(pspeed)
-    pname.width(pwidth)
-    pname.setposition(x, y)
-    pname.shape(pshape)
-    return pname
+    # Defining a turtle
+    def define_turtle(self):
+        pname = turtle.Turtle()
+        pname.up()
+        pname.color(self.pcolor)
+        pname.speed(self.pspeed)
+        pname.width(self.pwidth)
+        pname.setposition(self.x, self.y)
+        pname.shape(self.pshape)
+        return pname
 
-# Display window manipulation
-turtle.setup(600, 600)
-turtle.bgcolor("black")
+class Grid:
+    # Turtles to control the row and column
+    def __init__(self):
+        self.rowTurtle = [myTurtle(-300, 100, 5, "white", "arrow", 5).define_turtle() for i in range(2)]
+        self.columnTurtle = [myTurtle(-100, 300, 5, "yellow", "arrow", 5).define_turtle() for i in range(2)]
 
-# 2 Turtles to control the row/column and the players
-rowCircleTurtle = define_turtle(pspeed = 5, pwidth = 5, x = -300, y = 100)
-columnCrossTurtle = define_turtle(pcolor = "yellow", pwidth = 5, pspeed = 5, x = -100, y = 300)
+    # Set positions for the latter turtles
+    def set_turtles(self):
+        self.columnTurtle[1].setposition(100, 300)
+        self.rowTurtle[1].setposition(-300, -100)
 
-# 2 Clone Turtles to draw the 2nd row/column
-rowCircleTurtle1 = rowCircleTurtle.clone()
-columnCrossTurtle1 = columnCrossTurtle.clone()
+    # Draw Columns and Rows
+    def draw_row_columns(self):
+        for i in range(2):
+            self.columnTurtle[i].down()
+            self.columnTurtle[i].right(90)
+            self.columnTurtle[i].forward(600)
+            self.columnTurtle[i].hideturtle()
 
-columnCrossTurtle.down()
-columnCrossTurtle.right(90)
-columnCrossTurtle.forward(600)
+            self.rowTurtle[i].down()
+            self.rowTurtle[i].forward(600)
+            self.rowTurtle[i].hideturtle()
 
-columnCrossTurtle1.setposition(100, 300)
-columnCrossTurtle1.down()
-columnCrossTurtle1.right(90)
-columnCrossTurtle1.forward(600)
+class DrawAction:
+    def __init__(self, x, y) -> None:
+        self.x = x
+        self.y = y
+        self.count = 0
+        self.fxn()
+        self.det_turn()
 
-rowCircleTurtle.down()
-rowCircleTurtle.forward(600)
+    # Set x, y to get the proper square
+    def fxn(self):
+        if -298.0 < self.x < -117.0:
+            self.x = -200
+        elif -73.0 < self.x < 83.0:
+            self.x = 0
+        elif 115.0 < self.x < 272.0:
+            self.x = 200
 
-rowCircleTurtle1.setposition(-300, -100)
-rowCircleTurtle1.down()
-rowCircleTurtle1.forward(600)
+        if -276.0 < self.y < -119.0:
+            self.y = -200
+        elif -84.0 < self.y < 82.0:
+            self.y = 0
+        elif 109.0 < self.y < 293.0:
+            self.y = 200
+            
+    # Determine the turn
+    def det_turn(self):
+       if self.count % 2 == 0:
+           self.draw_circle()
+       else:
+           self.draw_cross()
+       self.count += 1
 
-# Creating centre of each box to have a proper input
-centerTurtle = define_turtle(pcolor = "#3F403D", pspeed = 0, pwidth = 5, pshape = "turtle", x = -200, y = 200)
-adjust = 200
+    # Draw circle or cross
+    def draw_circle(self):
+        circleTurtle = myTurtle(self.x, self.y - 50, 10, "white", "arrow", pwidth = 7).define_turtle()
+        circleTurtle.hideturtle()
+        circleTurtle.down()
+        circleTurtle.circle(65)
+        circleTurtle.up()
 
-for i in range(3):
-    for j in range(3):
-        centerTurtle.begin_fill()
-        centerTurtle.circle(15)
-        centerTurtle.end_fill()
-        centerTurtle.setx(-200 + adjust)
-        adjust += 200
-    adjust = 200
-    centerTurtle.setposition(-200, 200 - (i + 1) * adjust)
+    def draw_cross(self):
+        crossTurtle = myTurtle(self.x, self.y - 50, 10, "white", "arrow", pwidth = 8).define_turtle()
+        crossTurtle.hideturtle()
+        crossTurtle.down()
+        crossTurtle.left(45)
+        crossTurtle.forward(100)
+        crossTurtle.backward(160)
+        crossTurtle.up()
+        crossTurtle.setposition(self.x - 50, self.y + 70)
+        crossTurtle.down()
+        crossTurtle.right(90)
+        crossTurtle.forward(160)
+        crossTurtle.up()
 
-centerTurtle.color("green")
+class GameManager:
+    def __init__(self):
+        self.window = turtle.Screen()
+        self.window.onscreenclick(self.handle_click)
 
-# To get the proper square
-def fxn(x, y):
-    if -298.0 < x < -117.0:
-        centerTurtle.setx(-200)
-    elif -73.0 < x < 83.0:
-        centerTurtle.setx(0)
-    elif 115.0 < x < 272.0:
-        centerTurtle.setx(200)
-    if 109.0 < y < 293.0:
-        centerTurtle.sety(200)
-    elif -84.0 < y < 82.0:
-        centerTurtle.sety(0)
-    elif -276.0 < y < -119.0:
-        centerTurtle.sety(-200)
-    global i
-    if i % 2 == 0:
-        draw_circle(centerTurtle.xcor(), centerTurtle.ycor())
-    else:
-        draw_cross(centerTurtle.xcor(), centerTurtle.ycor())
-    i += 1
-        
+    def handle_click(self, x, y):
+        DrawAction(x, y)
+    
 
-# Draw circle or cross
-def draw_circle(x, y):
-    circleTurtle = define_turtle(pcolor = "white", pspeed = 10, pwidth = 7)
-    circleTurtle.hideturtle()
-    circleTurtle.setposition(x, y - 50)
-    circleTurtle.down()
-    circleTurtle.circle(65)
-    circleTurtle.up()
+def main():
+    turtle.title("Tic-tac-toe")  # Setting the title
+    
+    # Display window manipulation
+    turtle.setup(600, 600)
+    turtle.bgcolor("black")
 
-def draw_cross(x, y):
-    crossTurtle = define_turtle(pcolor = "white", pspeed = 10, pwidth = 8)
-    crossTurtle.hideturtle()
-    crossTurtle.setposition(x - 20, y)
-    crossTurtle.down()
-    crossTurtle.left(45)
-    crossTurtle.forward(100)
-    crossTurtle.backward(160)
-    crossTurtle.up()
-    crossTurtle.setposition(x - 50, y + 70)
-    crossTurtle.down()
-    crossTurtle.right(90)
-    crossTurtle.forward(160)
-    crossTurtle.up()
+    # Setting up the grid
+    backGround = Grid()
+    backGround.set_turtles()
+    backGround.draw_row_columns()
 
-# Determine the turn
-##def det_turn(x, y):
-##    if count % 2:
-##        draw_circle(x, y)
-##    else:
-##        draw_cross(x, y)
-##    count += 1
-window.onclick(fxn)
+    game_manager = GameManager()
+    
+    
+    # To run the program till the end
+    turtle.mainloop()
 
+
+if __name__ == "__main__":
+    main()
 
 
 
