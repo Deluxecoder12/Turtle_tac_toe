@@ -23,8 +23,8 @@ class myTurtle:
 class Grid:
     # Turtles to control the row and column
     def __init__(self):
-        self.rowTurtle = [myTurtle(-300, 100, 5, "white", "arrow", 5).define_turtle() for i in range(2)]
         self.columnTurtle = [myTurtle(-100, 300, 5, "yellow", "arrow", 5).define_turtle() for i in range(2)]
+        self.rowTurtle = [myTurtle(-300, 100, 5, "white", "arrow", 5).define_turtle() for i in range(2)]
 
     # Set positions for the latter turtles
     def set_turtles(self):
@@ -44,68 +44,73 @@ class Grid:
             self.rowTurtle[i].hideturtle()
 
 class DrawAction:
-    def __init__(self, x, y) -> None:
+    def __init__(self, x, y, count) -> None:
         self.x = x
         self.y = y
-        self.count = 0
-        self.fxn()
+        self.count = count
         self.det_turn()
-
-    # Set x, y to get the proper square
-    def fxn(self):
-        if -298.0 < self.x < -117.0:
-            self.x = -200
-        elif -73.0 < self.x < 83.0:
-            self.x = 0
-        elif 115.0 < self.x < 272.0:
-            self.x = 200
-
-        if -276.0 < self.y < -119.0:
-            self.y = -200
-        elif -84.0 < self.y < 82.0:
-            self.y = 0
-        elif 109.0 < self.y < 293.0:
-            self.y = 200
             
     # Determine the turn
     def det_turn(self):
-       if self.count % 2 == 0:
-           self.draw_circle()
-       else:
-           self.draw_cross()
-       self.count += 1
+        if self.count % 2:
+            self.draw_circle()
+        else:
+            self.draw_cross()
+        self.count += 1
 
     # Draw circle or cross
     def draw_circle(self):
-        circleTurtle = myTurtle(self.x, self.y - 50, 10, "white", "arrow", pwidth = 7).define_turtle()
+        circleTurtle = myTurtle(self.x, self.y - 70, 10, "white", "arrow", pwidth = 7).define_turtle()
         circleTurtle.hideturtle()
         circleTurtle.down()
-        circleTurtle.circle(65)
+        circleTurtle.circle(70)
         circleTurtle.up()
 
     def draw_cross(self):
-        crossTurtle = myTurtle(self.x, self.y - 50, 10, "white", "arrow", pwidth = 8).define_turtle()
+        crossTurtle = myTurtle(self.x, self.y, 10, "white", "arrow", pwidth = 8).define_turtle()
         crossTurtle.hideturtle()
         crossTurtle.down()
         crossTurtle.left(45)
-        crossTurtle.forward(100)
-        crossTurtle.backward(160)
+        crossTurtle.forward(90)
+        crossTurtle.backward(180)
         crossTurtle.up()
-        crossTurtle.setposition(self.x - 50, self.y + 70)
+        crossTurtle.left(45)
+        crossTurtle.forward(130)
         crossTurtle.down()
-        crossTurtle.right(90)
-        crossTurtle.forward(160)
+        crossTurtle.right(135)
+        crossTurtle.forward(180)
         crossTurtle.up()
 
 class GameManager:
     def __init__(self):
+        self.count = 0
+        self.input_matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.draw_lock = False
         self.window = turtle.Screen()
         self.window.onscreenclick(self.handle_click)
 
-    def handle_click(self, x, y):
-        DrawAction(x, y)
-    
+    # Set x, y to get the proper square and the matrix position
+    def fxn(self, coord):
+        if -350.0 <= coord < -100.0:
+            return -200, 0
+        elif -100.0 <= coord < 100.0:
+            return 0, 1
+        elif 100.0 <= coord < 350.0:
+            return 200, 2
+        return coord
 
+    def handle_click(self, x, y):
+        if not self.draw_lock:
+            self.draw_lock = True
+            x, list_x = self.fxn(x)
+            y, list_y = self.fxn(y)
+            if self.input_matrix[list_x][list_y] == 0:
+                self.input_matrix[list_x][list_y] = 1
+                DrawAction(x, y, self.count)
+                self.count += 1
+            self.draw_lock = False
+    
+    
 def main():
     turtle.title("Tic-tac-toe")  # Setting the title
     
@@ -119,7 +124,6 @@ def main():
     backGround.draw_row_columns()
 
     game_manager = GameManager()
-    
     
     # To run the program till the end
     turtle.mainloop()
