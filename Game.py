@@ -25,6 +25,8 @@ class Grid:
     def __init__(self):
         self.columnTurtle = [myTurtle(-100, 300, 5, "yellow", "arrow", 5).define_turtle() for i in range(2)]
         self.rowTurtle = [myTurtle(-300, 100, 5, "white", "arrow", 5).define_turtle() for i in range(2)]
+        self.set_turtles()
+        self.draw_row_columns()
 
     # Set positions for the latter turtles
     def set_turtles(self):
@@ -53,9 +55,9 @@ class DrawAction:
     # Determine the turn
     def det_turn(self):
         if self.count % 2:
-            self.draw_circle()
-        else:
             self.draw_cross()
+        else:
+            self.draw_circle()
         self.count += 1
 
     # Draw circle or cross
@@ -83,11 +85,27 @@ class DrawAction:
 
 class GameManager:
     def __init__(self):
-        self.count = 0
-        self.input_matrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-        self.draw_lock = False
+        self.reset_game()
+
+    def reset_game(self):
+        # Window setup
         self.window = turtle.Screen()
+        self.window.clear()
+        self.window.bgcolor("black")
+        self.window.title("Tic-tac-toe")
+        
+        self.count = 0
+        self.input_matrix = [[0] * 3 for _ in range(3)]
+        self.draw_lock = False
+        
+        # Setting up the grid
+        backGround = Grid()
+
         self.window.onscreenclick(self.handle_click)
+        self.display = turtle.Turtle()
+        self.display.penup()
+        self.display.hideturtle()
+        self.display.color("yellow")
 
     # Set x, y to get the proper square and the matrix position
     def fxn(self, coord):
@@ -105,29 +123,50 @@ class GameManager:
             x, list_x = self.fxn(x)
             y, list_y = self.fxn(y)
             if self.input_matrix[list_x][list_y] == 0:
-                self.input_matrix[list_x][list_y] = 1
-                DrawAction(x, y, self.count)
                 self.count += 1
+                self.input_matrix[list_x][list_y] = (self.count % 2) + 1
+                DrawAction(x, y, self.count)
+                
+                t = turtle.Turtle(visible=False)
+                t.color("yellow")
+                winner, winner_symbol = self.check_win()  # Capture both return values
+                if winner:
+                    message = f"Winner is {'O' if winner_symbol == 1 else 'X'}"
+                    self.game_over(message)
+                elif self.count == 9:
+                    self.game_over("No winner")
+
             self.draw_lock = False
+
+    def check_win(self):
+        if self.count > 3:
+            for i in range(3):
+                if self.input_matrix[i][0] == self.input_matrix[i][1] == self.input_matrix[i][2] != 0:
+                    return True, self.input_matrix[i][0]
+                if self.input_matrix[0][i] == self.input_matrix[1][i] == self.input_matrix[2][i] != 0:
+                    return True, self.input_matrix[0][i]
+
+            # Check diagonals
+            if self.input_matrix[0][0] == self.input_matrix[1][1] == self.input_matrix[2][2] != 0:
+                return True, self.input_matrix[0][0]
+            if self.input_matrix[0][2] == self.input_matrix[1][1] == self.input_matrix[2][0] != 0:
+                return True, self.input_matrix[0][2]
+        return False, None
     
+    def game_over(self, message):
+        self.display.goto(0, 0)
+        self.display.write(message, align="center", font=("Arial", 16, "normal"))
+        self.display.goto(0, -30)
+        self.display.write("Click to restart or right-click to exit", align="center", font=("Arial", 16, "normal"))
+        # Use lambda to ignore x, y
+        self.window.onscreenclick(lambda x, y: self.reset_game())  # Left-click to restart
+        self.window.onscreenclick(lambda x, y: self.window.bye(), 3)  # Right-click to exit
     
 def main():
-    turtle.title("Tic-tac-toe")  # Setting the title
-    
-    # Display window manipulation
-    turtle.setup(600, 600)
-    turtle.bgcolor("black")
-
-    # Setting up the grid
-    backGround = Grid()
-    backGround.set_turtles()
-    backGround.draw_row_columns()
-
     game_manager = GameManager()
     
     # To run the program till the end
     turtle.mainloop()
-
 
 if __name__ == "__main__":
     main()
